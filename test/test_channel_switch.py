@@ -48,7 +48,7 @@ def test_to_values_color_temp():
 
 
 def test_from_values_ch():
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [255, 0], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -57,7 +57,7 @@ def test_from_values_ch():
     assert warm_white == 0
     assert color_temp == min_mireds
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [0, 255], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -66,7 +66,7 @@ def test_from_values_ch():
     assert warm_white == 255
     assert color_temp == max_mireds
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [255, 255], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -75,7 +75,7 @@ def test_from_values_ch():
     assert warm_white == 255
     assert color_temp == mid_temp
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [128, 128], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -85,7 +85,7 @@ def test_from_values_ch():
     assert color_temp == mid_temp
 
 def test_from_values_dCH():
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 255, 0], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -94,7 +94,7 @@ def test_from_values_dCH():
     assert warm_white == 0
     assert color_temp == min_mireds
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 0, 255], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -103,7 +103,7 @@ def test_from_values_dCH():
     assert warm_white == 255
     assert color_temp == max_mireds
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 255, 255], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -112,7 +112,7 @@ def test_from_values_dCH():
     assert warm_white == 255
     assert color_temp == mid_temp
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 128, 128], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on
@@ -121,7 +121,7 @@ def test_from_values_dCH():
     assert warm_white == 128
     assert color_temp == mid_temp
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [128, 255, 255], min_mireds=min_mireds, max_mireds=max_mireds)
 
     assert is_on

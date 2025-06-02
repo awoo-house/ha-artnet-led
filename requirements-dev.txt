@@ -1,0 +1,2 @@
+homeassistant
+pyartnet==1.0.1

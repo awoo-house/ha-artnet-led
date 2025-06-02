@@ -15,6 +15,7 @@ from homeassistant.components.light import (
     ATTR_RGB_COLOR,
     ATTR_RGBW_COLOR,
     ATTR_RGBWW_COLOR,
+    ATTR_XY_COLOR,
     ATTR_TRANSITION,
     PLATFORM_SCHEMA,
     LightEntity, ATTR_WHITE, ATTR_COLOR_TEMP_KELVIN, ATTR_FLASH,
@@ -469,7 +470,7 @@ class DmxBinary(DmxBaseLight):
         self._supported_color_modes.add(ColorMode.ONOFF)
 
     def _update_values(self, values: array[int]):
-        self._state, _, _, _, _, _, _, color_temp = from_values("d", self.channel_size[1], values)
+        self._state, _, _, _, _, _, _, color_temp, _, _ = from_values("d", self.channel_size[1], values)
 
         self._channel_value_change()
 
@@ -539,7 +540,7 @@ class DmxDimmer(DmxBaseLight):
         validate(self._channel_setup, self.CONF_TYPE)
 
     def _update_values(self, values: array[int]):
-        self._state, self._attr_brightness, _, _, _, _, _, _ = \
+        self._state, self._attr_brightness, _, _, _, _, _, _, _, _ = \
             from_values(self._channel_setup, self.channel_size[1], values)
 
         self._channel_value_change()
@@ -602,9 +603,8 @@ class DmxWhite(DmxBaseLight):
         return self._max_kelvin
 
     def _update_values(self, values: array[int]):
-        self._state, self._attr_brightness, _, _, _, _, _, color_temp = from_values(self._channel_setup,
-                                                                                    self.channel_size[1], values,
-                                                                                    self._min_kelvin, self._max_kelvin)
+        self._state, self._attr_brightness, _, _, _, _, _, color_temp, _, _ = \
+            from_values(self._channel_setup, self.channel_size[1], values, self._min_kelvin, self._max_kelvin)
         self._vals = color_temp
 
         self._channel_value_change()
@@ -677,7 +677,7 @@ class DmxRGB(DmxBaseLight):
         return self._vals
 
     def _update_values(self, values: array[int]):
-        self._state, self._attr_brightness, red, green, blue, _, _, _ = \
+        self._state, self._attr_brightness, red, green, blue, _, _, _, _, _ = \
             from_values(self._channel_setup, self.channel_size[1], values)
 
         self._vals = (red, green, blue)
@@ -759,7 +759,7 @@ class DmxRGBW(DmxBaseLight):
         return tuple(self._vals)
 
     def _update_values(self, values: array[int]):
-        self._state, self._attr_brightness, red, green, blue, white, _, _ = \
+        self._state, self._attr_brightness, red, green, blue, white, _, _, _, _ = \
             from_values(self._channel_setup, self.channel_size[1], values)
 
         self._vals = [red, green, blue, white]
@@ -839,7 +839,7 @@ class DmxRGBWW(DmxBaseLight):
         self._channel_width = len(self._channel_setup)
 
     def _update_values(self, values: array[int]):
-        self._state, self._attr_brightness, red, green, blue, cold_white, warm_white, color_temp = \
+        self._state, self._attr_brightness, red, green, blue, cold_white, warm_white, color_temp, _, _, _, _ = \
             from_values(self._channel_setup, self.channel_size[1], values)
 
         self._vals = (red, green, blue, cold_white, warm_white, color_temp)
@@ -931,12 +931,88 @@ class DmxRGBWW(DmxBaseLight):
         if old_state.state != STATE_OFF:
             await super().async_create_fade(brightness=self._attr_brightness, rgbww_color=self._vals, transition=0)
 
+class DmxDXY(DmxBaseLight):
+    CONF_TYPE = "xy"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._features = LightEntityFeature.TRANSITION | LightEntityFeature.FLASH
+        self._color_mode = ColorMode.XY
+        self._supported_color_modes.add(ColorMode.XY)
+        self._supported_color_modes.add(ColorMode.BRIGHTNESS)
+
+        self._vals = [0, 0]
+
+        self._channel_setup = kwargs.get(CONF_CHANNEL_SETUP) or "dxy"
+        validate(self._channel_setup, self.CONF_TYPE)
+
+        self._channel_width = len(self._channel_setup)
+
+    def _update_values(self, values: array[int]):
+        self._state, self._attr_brightness, _, _, _, _, _, _, x, y = \
+            from_values(self._channel_setup, self.channel_size[1], values)
+
+        self._vals = (x, y)
+
+        self._channel_value_change()
+
+    @property
+    def xy_color(self) -> tuple:
+        """Return the xy color value."""
+        return tuple(self._vals[0:1])
+
+    def get_target_values(self):
+        x = self._vals[0]
+        y = self._vals[1]
+
+        return to_values(self._channel_setup, self._channel_size[1], self.is_on, self._attr_brightness,
+                         x=x, y=y)
+
+    async def async_turn_on(self, **kwargs):
+        """
+        Instruct the light to turn on.
+        """
+        old_values = list(self._vals)
+        old_brightness = self._attr_brightness
+
+        # RGB already contains brightness information
+        if ATTR_XY_COLOR in kwargs:
+            self._vals[0:1] = kwargs[ATTR_XY_COLOR]
+
+            if self._vals[0] != old_values[0] or self._vals[1] != old_values[1]:
+                self._channel_value_change()
+
+        if ATTR_BRIGHTNESS in kwargs:
+            self._attr_brightness = kwargs[ATTR_BRIGHTNESS]
+
+        if ATTR_FLASH in kwargs:
+            await super().flash(old_values, old_brightness, **kwargs)
+        else:
+            await super().async_create_fade(**kwargs)
+
+        return None
+
+    async def restore_state(self, old_state):
+        log.debug("Added xy to hass. Try restoring state.")
+
+        if old_state:
+            prev_vals = old_state.attributes.get('values')
+            if len(prev_vals) == 2:
+                self._vals = prev_vals
+
+            prev_brightness = old_state.attributes.get('bright')
+            self._attr_brightness = prev_brightness
+
+        if old_state.state != STATE_OFF:
+            await super().async_create_fade(brightness=self._attr_brightness, xy_color=self._vals, transition=0)
+
 
 # ------------------------------------------------------------------------------
 # conf
 # ------------------------------------------------------------------------------
 
-__CLASS_LIST = [DmxDimmer, DmxRGB, DmxWhite, DmxRGBW, DmxRGBWW, DmxBinary, DmxFixed]
+__CLASS_LIST = [DmxDimmer, DmxRGB, DmxWhite, DmxRGBW, DmxRGBWW, DmxBinary, DmxFixed, DmxDXY]
 __CLASS_TYPE = {k.CONF_TYPE: k for k in __CLASS_LIST}
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(

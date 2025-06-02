@@ -15,7 +15,8 @@ allowed_chars_per_type = {
     "color_temp": "dcChHtT",
     "rgb": "drRgGbBuUwW",
     "rgbw": "drRgGbBuUwW",
-    "rgbww": "dcChHtTrRgGbBuU"
+    "rgbww": "dcChHtTrRgGbBuU",
+    "xy": "dxy"
 }
 
 
@@ -109,6 +110,8 @@ def from_values(channel_setup: str, channel_size: int, values: list[int],
     cold_white: int | None = None
     warm_white: int | None = None
     color_temp_kelvin: int | None = None
+    x: int | None = None
+    y: int | None = None
 
     # Find brightness
     for index, channel in enumerate(channel_setup):
@@ -161,6 +164,10 @@ def from_values(channel_setup: str, channel_size: int, values: list[int],
             hue = int(value * 360 / 255)
         elif channel == "U":
             saturation = int(value * 100 / 255)
+        elif channel == "x":
+            x = value
+        elif channel == "y":
+            y = value
 
     if cold_white is None and warm_white is not None:
         cold_white = 255 - warm_white
@@ -178,7 +185,7 @@ def from_values(channel_setup: str, channel_size: int, values: list[int],
     if hue is not None and saturation is not None and red is None and green is None and blue is None:
         red, green, blue = color_hsv_to_RGB(hue, saturation, 1)
 
-    return is_on, brightness, red, green, blue, cold_white, warm_white, color_temp_kelvin
+    return is_on, brightness, red, green, blue, cold_white, warm_white, color_temp_kelvin, x, y
 
 
 def _scale_brightness(value: int | None, brightness: int) -> int | None:
