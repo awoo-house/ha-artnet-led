@@ -942,7 +942,7 @@ class DmxDXY(DmxBaseLight):
         self._supported_color_modes.add(ColorMode.XY)
         self._supported_color_modes.add(ColorMode.BRIGHTNESS)
 
-        self._vals = [0, 0]
+        self._vals = [0.0, 0.0]
 
         self._channel_setup = kwargs.get(CONF_CHANNEL_SETUP) or "dxy"
         validate(self._channel_setup, self.CONF_TYPE)
@@ -960,7 +960,7 @@ class DmxDXY(DmxBaseLight):
     @property
     def xy_color(self) -> tuple:
         """Return the xy color value."""
-        return tuple(self._vals[0:1])
+        return tuple(self._vals[0:2])
 
     def get_target_values(self):
         x = self._vals[0]
