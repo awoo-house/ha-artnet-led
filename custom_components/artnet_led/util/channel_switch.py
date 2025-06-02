@@ -33,7 +33,8 @@ def _default_calculation_function(channel_value):
 
 def to_values(channel_setup: str, channel_size: int, is_on: bool = True, brightness: int = 255, red: int = -1,
               green: int = -1, blue: int = -1, cold_white: int = -1, warm_white: int = -1,
-              color_temp_kelvin: int | None = None, min_kelvin: int | None = None, max_kelvin: int | None = None
+              color_temp_kelvin: int | None = None, min_kelvin: int | None = None, max_kelvin: int | None = None,
+              x: int | None = None, y: int | None = None
               ) -> list[int]:
 
     if min_kelvin is not None and max_kelvin is not None:
@@ -82,6 +83,8 @@ def to_values(channel_setup: str, channel_size: int, is_on: bool = True, brightn
         "T": lambda: 255 - (color_temp_kelvin - min_kelvin) * 255 / kelvin_diff,
         "u": lambda: color_RGB_to_hsv(red, green, blue)[0] * 255 / 360,
         "U": lambda: color_RGB_to_hsv(red, green, blue)[1] * 255 / 100,
+        "x": lambda: x * is_on if x is not None else 0,
+        "y": lambda: y * is_on if y is not None else 0,
     }
 
     values: list[int] = list()
