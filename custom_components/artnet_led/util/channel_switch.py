@@ -34,8 +34,13 @@ def _default_calculation_function(channel_value):
 def to_values(channel_setup: str, channel_size: int, is_on: bool = True, brightness: int = 255, red: int = -1,
               green: int = -1, blue: int = -1, cold_white: int = -1, warm_white: int = -1,
               color_temp_kelvin: int | None = None, min_kelvin: int | None = None, max_kelvin: int | None = None,
-              x: int | None = None, y: int | None = None
+              x: float | None = None, y: float | None = None
               ) -> list[int]:
+    
+    log.debug("to_values: channel_setup=%s, channel_size=%s, is_on=%s, brightness=%s, red=%s, green=%s, blue=%s, "
+              "cold_white=%s, warm_white=%s, color_temp_kelvin=%s, min_kelvin=%s, max_kelvin=%s, x=%s, y=%s",
+              channel_setup, channel_size, is_on, brightness, red, green, blue,
+              cold_white, warm_white, color_temp_kelvin, min_kelvin, max_kelvin, x, y)
 
     if min_kelvin is not None and max_kelvin is not None:
         kelvin_diff = (max_kelvin - min_kelvin)
@@ -83,8 +88,8 @@ def to_values(channel_setup: str, channel_size: int, is_on: bool = True, brightn
         "T": lambda: 255 - (color_temp_kelvin - min_kelvin) * 255 / kelvin_diff,
         "u": lambda: color_RGB_to_hsv(red, green, blue)[0] * 255 / 360,
         "U": lambda: color_RGB_to_hsv(red, green, blue)[1] * 255 / 100,
-        "x": lambda: x * is_on if x is not None else 0,
-        "y": lambda: y * is_on if y is not None else 0,
+        "x": lambda: is_on * x * 255 if x is not None else 128,
+        "y": lambda: is_on * y * 255 if y is not None else 128,
     }
 
     values: list[int] = list()
@@ -96,6 +101,7 @@ def to_values(channel_setup: str, channel_size: int, is_on: bool = True, brightn
             value = max(0, min(255, value))
 
         values.append(int(round(value * channel_size)))
+        log.debug("Channel %s: value=%s", channel, values[-1])
 
     return values
 
@@ -124,7 +130,7 @@ def from_values(channel_setup: str, channel_size: int, values: list[int],
             brightness = value
             break
 
-        elif channel in "rgbwch":
+        elif channel in "rgbwchxy":
             if brightness is None or value > brightness:
                 brightness = value
 

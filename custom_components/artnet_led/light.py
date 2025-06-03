@@ -940,7 +940,6 @@ class DmxDXY(DmxBaseLight):
         self._features = LightEntityFeature.TRANSITION | LightEntityFeature.FLASH
         self._color_mode = ColorMode.XY
         self._supported_color_modes.add(ColorMode.XY)
-        self._supported_color_modes.add(ColorMode.BRIGHTNESS)
 
         self._vals = [0.0, 0.0]
 
@@ -953,18 +952,25 @@ class DmxDXY(DmxBaseLight):
         self._state, self._attr_brightness, _, _, _, _, _, _, x, y = \
             from_values(self._channel_setup, self.channel_size[1], values)
 
-        self._vals = (x, y)
+        def normalize(value: int) -> float:
+            return value / (255.0 * self._channel_size[1])
+        
+        self._vals = (normalize(x), normalize(y))
+        log.debug("DmxDXY _update_values: x=%s, y=%s, brightness=%s", self._vals[0], self._vals[1], self._attr_brightness)
 
         self._channel_value_change()
 
     @property
     def xy_color(self) -> tuple:
         """Return the xy color value."""
+        log.debug("DmxDXY xy_color: x=%s, y=%s", self._vals[0], self._vals[1])
         return tuple(self._vals[0:2])
 
     def get_target_values(self):
         x = self._vals[0]
         y = self._vals[1]
+
+        log.debug("get_target_values: x=%s, y=%s, brightness=%s, channel_size=%s", x, y, self._attr_brightness, self._channel_size[1])
 
         return to_values(self._channel_setup, self._channel_size[1], self.is_on, self._attr_brightness,
                          x=x, y=y)
@@ -976,9 +982,13 @@ class DmxDXY(DmxBaseLight):
         old_values = list(self._vals)
         old_brightness = self._attr_brightness
 
-        # RGB already contains brightness information
         if ATTR_XY_COLOR in kwargs:
-            self._vals[0:1] = kwargs[ATTR_XY_COLOR]
+            log.debug("DmxDXY async_turn_on: xy_color=%s", kwargs[ATTR_XY_COLOR])
+            log.debug(kwargs)
+            
+            self._vals[0:2] = kwargs[ATTR_XY_COLOR]
+
+            log.debug("DmxDXY old vals: x=%s, y=%s", old_values[0], old_values[1])
 
             if self._vals[0] != old_values[0] or self._vals[1] != old_values[1]:
                 self._channel_value_change()
