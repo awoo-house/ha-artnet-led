@@ -935,7 +935,7 @@ class DmxRGBWW(DmxBaseLight):
         if old_state.state != STATE_OFF:
             await super().async_create_fade(brightness=self._attr_brightness, rgbww_color=self._vals, transition=0)
 
-class DmxDXY(DmxBaseLight):
+class DmxXY(DmxBaseLight):
     CONF_TYPE = "xy"
 
     def __init__(self, **kwargs):
@@ -957,17 +957,17 @@ class DmxDXY(DmxBaseLight):
             from_values(self._channel_setup, self.channel_size[1], values)
 
         def normalize(value: int) -> float:
-            return value / (255.0 * self._channel_size[1])
+            return value / 255.0
         
         self._vals = (normalize(x), normalize(y))
-        log.debug("DmxDXY _update_values: x=%s, y=%s, brightness=%s", self._vals[0], self._vals[1], self._attr_brightness)
+        log.debug("DmxXY _update_values: x=%s, y=%s, brightness=%s", self._vals[0], self._vals[1], self._attr_brightness)
 
         self._channel_value_change()
 
     @property
     def xy_color(self) -> tuple:
         """Return the xy color value."""
-        log.debug("DmxDXY xy_color: x=%s, y=%s", self._vals[0], self._vals[1])
+        log.debug("DmxXY xy_color: x=%s, y=%s", self._vals[0], self._vals[1])
         return tuple(self._vals[0:2])
 
     def get_target_values(self):
@@ -987,12 +987,12 @@ class DmxDXY(DmxBaseLight):
         old_brightness = self._attr_brightness
 
         if ATTR_XY_COLOR in kwargs:
-            log.debug("DmxDXY async_turn_on: xy_color=%s", kwargs[ATTR_XY_COLOR])
+            log.debug("DmxXY async_turn_on: xy_color=%s", kwargs[ATTR_XY_COLOR])
             log.debug(kwargs)
             
             self._vals[0:2] = kwargs[ATTR_XY_COLOR]
 
-            log.debug("DmxDXY old vals: x=%s, y=%s", old_values[0], old_values[1])
+            log.debug("DmxXY old vals: x=%s, y=%s", old_values[0], old_values[1])
 
             if self._vals[0] != old_values[0] or self._vals[1] != old_values[1]:
                 self._channel_value_change()
@@ -1026,7 +1026,7 @@ class DmxDXY(DmxBaseLight):
 # conf
 # ------------------------------------------------------------------------------
 
-__CLASS_LIST = [DmxDimmer, DmxRGB, DmxWhite, DmxRGBW, DmxRGBWW, DmxBinary, DmxFixed, DmxDXY]
+__CLASS_LIST = [DmxDimmer, DmxRGB, DmxWhite, DmxRGBW, DmxRGBWW, DmxBinary, DmxFixed, DmxXY]
 __CLASS_TYPE = {k.CONF_TYPE: k for k in __CLASS_LIST}
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(

@@ -130,7 +130,7 @@ def from_values(channel_setup: str, channel_size: int, values: list[int],
             brightness = value
             break
 
-        elif channel in "rgbwchxy":
+        elif channel in "rgbwch":
             if brightness is None or value > brightness:
                 brightness = value
 

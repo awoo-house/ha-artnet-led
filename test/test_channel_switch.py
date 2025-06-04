@@ -158,9 +158,9 @@ def test_16bit_xy_values():
     assert values[2] == 127 * 256
 
     is_on, brightness, _, _, _, _, _, _, x, y = \
-        from_values("dxy", 2, [65535, 65535, 65535], min_kelvin=min_k, max_kelvin=max_k)
+        from_values("dxy", 256, [65535, 65535, 65535])
 
     assert is_on
     assert brightness == 255
-    assert x == 1.0
-    assert y == 1.0
+    assert x == 255
+    assert y == 255
