@@ -69,7 +69,11 @@ DOMAIN = "dmx"
 AVAILABLE_CORRECTIONS = {"linear": pyartnet.output_correction.linear, "quadratic": pyartnet.output_correction.quadratic,
                          "cubic": pyartnet.output_correction.cubic, "quadruple": pyartnet.output_correction.quadruple}
 
-CHANNEL_SIZE = {
+type LogicalChannelSize = int
+type LogicalChannelNumBytes = int
+type ChannelSize = tuple[LogicalChannelSize, LogicalChannelNumBytes]
+
+CHANNEL_SIZE: dict[str, ChannelSize] = {
     "8bit": (1, 1),
     "16bit": (2, 256),
     "24bit": (3, 256 ** 2),
@@ -946,7 +950,7 @@ class DmxDXY(DmxBaseLight):
         self._channel_setup = kwargs.get(CONF_CHANNEL_SETUP) or "dxy"
         validate(self._channel_setup, self.CONF_TYPE)
 
-        self._channel_width = len(self._channel_setup)
+        self._channel_width: LogicalChannelSize = len(self._channel_setup)
 
     def _update_values(self, values: array[int]):
         self._state, self._attr_brightness, _, _, _, _, _, _, x, y = \

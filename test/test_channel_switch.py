@@ -54,7 +54,7 @@ def test_to_values_color_temp():
 
 
 def test_from_values_ch():
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [255, 0], 
                     min_kelvin=to_kelvin(min_mireds), 
                     max_kelvin=to_kelvin(max_mireds))
@@ -65,7 +65,7 @@ def test_from_values_ch():
     assert warm_white == 0
     assert color_temp == 2000
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [0, 255], 
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -76,7 +76,7 @@ def test_from_values_ch():
     assert warm_white == 255
     assert color_temp == 6536
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [255, 255], 
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -87,7 +87,7 @@ def test_from_values_ch():
     assert warm_white == 255
     assert color_temp == 4268
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("ch", 1, [128, 128],  
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -99,7 +99,7 @@ def test_from_values_ch():
     assert color_temp == 4268
 
 def test_from_values_dCH():
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 255, 0],  
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -110,7 +110,7 @@ def test_from_values_dCH():
     assert warm_white == 0
     assert color_temp == 2000
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 0, 255],  
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -121,7 +121,7 @@ def test_from_values_dCH():
     assert warm_white == 255
     assert color_temp == 6536
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 255, 255],  
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -132,7 +132,7 @@ def test_from_values_dCH():
     assert warm_white == 255
     assert color_temp == 4268
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [255, 128, 128],  
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -143,7 +143,7 @@ def test_from_values_dCH():
     assert warm_white == 128
     assert color_temp == 4268
 
-    is_on, brightness, _, _, _, cold_white, warm_white, color_temp = \
+    is_on, brightness, _, _, _, cold_white, warm_white, color_temp, _, _ = \
         from_values("dCH", 1, [128, 255, 255],  
                        min_kelvin=to_kelvin(min_mireds), 
                        max_kelvin=to_kelvin(max_mireds))
@@ -153,3 +153,18 @@ def test_from_values_dCH():
     assert cold_white == 255
     assert warm_white == 255
     assert color_temp == 4268
+
+def test_16bit_xy_values():
+    values = to_values("dxy", 256, True, 65535, x=0.5, y=0.5)
+
+    assert values[0] == 65280
+    assert values[1] == 127 * 256
+    assert values[2] == 127 * 256
+
+    is_on, brightness, _, _, _, _, _, _, x, y = \
+        from_values("dxy", 2, [65535, 65535], min_kelvin=to_kelvin(min_mireds), max_kelvin=to_kelvin(max_mireds))
+
+    assert is_on
+    assert brightness == 255
+    assert x == 1.0
+    assert y == 1.0
