@@ -960,14 +960,12 @@ class DmxXY(DmxBaseLight):
             return value / 255.0
         
         self._vals = (normalize(x), normalize(y))
-        log.debug("DmxXY _update_values: x=%s, y=%s, brightness=%s", self._vals[0], self._vals[1], self._attr_brightness)
 
         self._channel_value_change()
 
     @property
     def xy_color(self) -> tuple:
         """Return the xy color value."""
-        log.debug("DmxXY xy_color: x=%s, y=%s", self._vals[0], self._vals[1])
         return tuple(self._vals[0:2])
 
     def get_target_values(self):
@@ -987,12 +985,9 @@ class DmxXY(DmxBaseLight):
         old_brightness = self._attr_brightness
 
         if ATTR_XY_COLOR in kwargs:
-            log.debug("DmxXY async_turn_on: xy_color=%s", kwargs[ATTR_XY_COLOR])
             log.debug(kwargs)
             
-            self._vals[0:2] = kwargs[ATTR_XY_COLOR]
-
-            log.debug("DmxXY old vals: x=%s, y=%s", old_values[0], old_values[1])
+            self._vals = kwargs[ATTR_XY_COLOR]
 
             if self._vals[0] != old_values[0] or self._vals[1] != old_values[1]:
                 self._channel_value_change()
